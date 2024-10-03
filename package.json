@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "description": "Solution for the QA Engineer test at Immfly IAG, focusing on refining acceptance criteria, writing test cases, and automating the \"Sort by\" feature for a product list. Implemented using Playwright in TypeScript with best practices like POM.",
   "main": "index.js",
- "scripts": {
-  "test": "npx playwright test",
-  "test:headed": "npx playwright test --headed"
-},
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@playwright/test": "^1.47.2",
     "@types/node": "^22.7.4",
     "playwright": "^1.47.2",
     "ts-node": "^10.9.2",
