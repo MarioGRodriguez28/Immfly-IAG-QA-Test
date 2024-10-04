@@ -16,6 +16,7 @@ This project is a **Quality Assurance Automation** suite designed to test the pr
 ## Project Structure
 
 Here is an overview of the project directory structure:
+
 Immfly-IAG-QA-Test/
 ├── html-report/                # Generated Playwright HTML test reports
 ├── node_modules/               # Node.js dependencies (auto-generated)
