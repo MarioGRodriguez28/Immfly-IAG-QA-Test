@@ -5,7 +5,7 @@ const GOOGLE_CHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAAAveg_U
 
 export async function sendErrorToGoogleChat(testName: string, step: string, errorMessage: string) {
     const message = {
-        text: `Playwright Test Error:\nTest: ${testName}\nStep: ${step}\nError: ${errorMessage}`,
+        text: `Immfly IAG - QA Engineer Test:\nTest: ${testName}\nStep: ${step}\nError: ${errorMessage}`,
     };
 
     try {

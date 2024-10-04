@@ -2,51 +2,61 @@ import { test, expect } from '@playwright/test';
 import { ProductPage } from '../pages/ProductPage';
 import { sendErrorToGoogleChat } from '../utils/googleChatReporter';
 
-// General description for sorting by price test
+// Test description for sorting by price
 test.describe('Sorting by Price', () => {
     test('should sort products by price low to high', async ({ page }) => {
         const productPage = new ProductPage(page);
         const testName = 'Sorting by Price';
 
-        // Array to keep track of steps
+        // List of test steps
         const steps = [
             'Navigate to the page',
             'Accept cookies',
             'Sort products by Price Low to High',
             'Get sorted prices',
-            'Assert that prices are sorted correctly'
+            'Verify prices are sorted correctly'
         ];
 
         try {
-            await productPage.navigate(); // Step 1
-            await productPage.acceptCookies(); // Step 2
-            await productPage.sortProductsBy('Price Low to High'); // Step 3
+            // Execute test steps and capture potential errors
+            await runStep(steps[0], async () => await productPage.navigate());
+            await runStep(steps[1], async () => await productPage.acceptCookies());
+            await runStep(steps[2], async () => await productPage.sortProductsBy('Price Low to High'));
+            const sortedPrices = await runStep(steps[3], async () => productPage.getProductPrices());
+            const expectedSortedPrices = [...sortedPrices].sort((a, b) => parseFloat(a) - parseFloat(b)); // Expected sorted prices
 
-            const sortedPrices = await productPage.getProductPrices(); // Step 4
-            const expectedSortedPrices = [...sortedPrices].sort((a, b) => parseFloat(a) - parseFloat(b)); // Sort expected prices for comparison
-            
-            expect(sortedPrices).toEqual(expectedSortedPrices); // Step 5
+            expect(sortedPrices).toEqual(expectedSortedPrices); // Assert prices are sorted
 
         } catch (error) {
+            // Handle errors and report to Google Chat
             await handleError(testName, error, steps);
         }
     });
 });
 
-// Handle errors and send to Google Chat with step details
+// Helper function to run each step and capture specific errors
+async function runStep(stepDescription: string, stepFn: () => Promise<void | any>) {
+    try {
+        return await stepFn();
+    } catch (error) {
+        throw new Error(`Error in step: "${stepDescription}". Details: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+}
+
+// Function to handle errors and send the report to Google Chat
 async function handleError(testName: string, error: unknown, steps: string[]) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    const stepIndex = steps.length;
+    const failingStep = errorMessage.match(/Error in step: "(.*?)"/)?.[1] || 'Unknown step';
 
-    // Log error to console for local debugging
-    console.error(`Test "${testName}" failed at step: ${steps[stepIndex - 1]} | Error: ${errorMessage}`);
+    // Log error to the console for debugging
+    console.error(`Test "${testName}" failed at step: ${failingStep} | Error: ${errorMessage}`);
 
-    // Send error report to Google Chat
+    // Send the error report to Google Chat
     await sendErrorToGoogleChat(
         testName,
-        `An error occurred during: ${steps.slice(0, stepIndex).join(', ')}`,
+        `An error occurred during step: ${failingStep}`,
         errorMessage
     );
 
-    throw error; // Rethrow the error for Playwright to handle
+    throw error;
 }
