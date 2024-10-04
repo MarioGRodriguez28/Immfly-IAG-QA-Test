@@ -1,38 +1,52 @@
 import { test, expect } from '@playwright/test';
 import { ProductPage } from '../pages/ProductPage';
+import { sendErrorToGoogleChat } from '../utils/googleChatReporter';
 
-test('should sort products A-Z', async ({ page }) => {
-  const productPage = new ProductPage(page);
+// General description for sorting by name test
+test.describe('Sorting by Name', () => {
+    test('should order products from A to Z', async ({ page }) => {
+        const productPage = new ProductPage(page);
+        const testName = 'Sorting by Name';
 
-  // Navigate to the page and accept cookies
-  await productPage.navigate();
-  await productPage.acceptCookies();
+        // Array to keep track of steps
+        const steps = [
+            'Navigate to the page',
+            'Accept cookies',
+            'Sort products by Product A-Z',
+            'Get sorted product names',
+            'Verify products are sorted'
+        ];
 
-  // Sort the products from A to Z
-  await productPage.sortProductsBy('Product A-Z');
+        try {
+            await productPage.navigate(); // Step 1
+            await productPage.acceptCookies(); // Step 2
+            await productPage.sortProductsBy('Product A-Z'); // Step 3
 
-  // Verify that the products are correctly sorted
-  const productNames = await productPage.getProductNames();
-  const sortedNames = [...productNames].sort();
-  
-  // Expect the product names to match the sorted names
-  expect(productNames).toEqual(sortedNames);
+            const sortedNames = await productPage.getProductNames(); // Step 4
+            const expectedSortedNames = [...sortedNames].sort(); // Sort expected names for comparison
+            
+            expect(sortedNames).toEqual(expectedSortedNames); // Step 5
+
+        } catch (error) {
+            await handleError(testName, error, steps);
+        }
+    });
 });
 
-test('should sort products Z-A', async ({ page }) => {
-  const productPage = new ProductPage(page);
+// Handle errors and send to Google Chat with step details
+async function handleError(testName: string, error: unknown, steps: string[]) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const stepIndex = steps.length;
 
-  // Navigate to the page and accept cookies
-  await productPage.navigate();
-  await productPage.acceptCookies();
+    // Log error to console for local debugging
+    console.error(`Test "${testName}" failed at step: ${steps[stepIndex - 1]} | Error: ${errorMessage}`);
 
-  // Sort the products from Z to A
-  await productPage.sortProductsBy('Product Z-A');
+    // Send error report to Google Chat
+    await sendErrorToGoogleChat(
+        testName,
+        `An error occurred during: ${steps.slice(0, stepIndex).join(', ')}`,
+        errorMessage
+    );
 
-  // Verify that the products are correctly sorted
-  const productNames = await productPage.getProductNames();
-  const sortedNames = [...productNames].sort().reverse();
-  
-  // Expect the product names to match the reversed sorted names
-  expect(productNames).toEqual(sortedNames);
-});
+    throw error; // Rethrow the error for Playwright to handle
+}
